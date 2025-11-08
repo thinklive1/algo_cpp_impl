@@ -4,6 +4,8 @@
 #include <set>
 #include <sstream>
 #include <unordered_map>
+#include <map>
+#include <functional>
 #include <unordered_set>
 #include <stack>
 #include <set>
@@ -114,6 +116,16 @@ void moveZeroes(vector<int>& nums) {
         }
         else { ++slow;++fast; }
     }
+}
+
+int maxArea(vector<int>& height) {
+    int i = 0, j = height.size() - 1, max_ar = (j - i) * min(height[i], height[j]);
+    while (i < j) {
+        if (height[i] < height[j]) ++i;
+        else --j;
+        max_ar = max(max_ar, (j - i) * min(height[i], height[j]));
+    }
+    return max_ar;
 }
 
 //一个非空整数数组 nums ，除了某个元素只出现一次以外，其余每个元素均出现两次。找出那个只出现了一次的元素
@@ -592,7 +604,7 @@ int longestConsecutive(vector<int>& nums) {
     return max_len;
 }
 
-int maxArea(vector<int>& height) {
+int maxArea2(vector<int>& height) {
     int i = 0, j = height.size() - 1, max_ar = (j - i) * min(height[i], height[j]);
     while (i < j) {
         if (height[i] < height[j]) ++i;
@@ -1222,22 +1234,663 @@ vector<vector<int>> generate(int numRows) {
 
 //沿街的房屋每间都藏有一定的现金,如果两间相邻的房屋在同一晚上被小偷闯入，系统会自动报警,计算一夜之内能够偷窃到的最高金额
 int rob(const vector<int>& nums) {
-    int size = nums.size();
-    if (size == 1) return nums[0];
-    vector<int> dp = vector<int>(size, 0);
-    dp[0] = nums[0];
-    dp[1] = max(nums[0], nums[1]);
-    for (int i = 2; i < size; i++) {
-        dp[i] = max(dp[i - 2] + nums[i], dp[i - 1]);
+    int n = nums.size(), i = 2;
+    if (n == 1) return nums[0];
+    vector<int> mem = { max(nums[0], nums[1]),nums[0],max(nums[0], nums[1]) };
+    while (i < n) {
+        mem[0] = max(mem[1] + nums[i], mem[2]);
+        mem[1] = mem[2];
+        mem[2] = mem[0];
+        ++i;
     }
-    return dp[size - 1];
+    return mem[0];
 }
+
+void setZeroes2(vector<vector<int>>& matrix) {
+    int m = matrix.size();
+    int n = matrix[0].size();
+    vector<int> row(m), col(n);
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (!matrix[i][j]) {
+                row[i] = col[j] = true;
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (row[i] || col[j]) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+}
+
+vector<int> spiralOrder(vector<vector<int>>& matrix) {
+    vector<int> res;
+    int m = matrix.size();
+    int n = matrix[0].size();
+    int dire = 0, cycle = 0;
+    while (1) {
+        if (res.size() >= m * n) return res;
+        switch (dire) {
+        case 0:
+        /* code */
+        for (int j = cycle;j < n - cycle;++j) res.emplace_back(matrix[cycle][j]);
+        dire = 1;
+        break;
+        case 1:
+        for (int i = cycle + 1;i < m - cycle;++i) res.emplace_back(matrix[i][n - 1 - cycle]);
+        dire = 2;
+        break;
+        case 2:
+        for (int j = n - cycle - 2;j >= cycle;--j) res.emplace_back(matrix[m - 1 - cycle][j]);
+        dire = 3;
+        break;
+        case 3:
+        for (int i = m - 2 - cycle;i >= 1 + cycle;--i) res.emplace_back(matrix[i][cycle]);
+        dire = 0;
+        ++cycle;
+        break;
+        }
+    }
+    return res;
+
+}
+
+void rotate(vector<vector<int>>& matrix) {
+    int n = matrix.size();
+    for (int i = 0; i < n / 2; ++i) for (int j = 0; j < n; ++j) swap(matrix[i][j], matrix[n - i - 1][j]);
+    for (int i = 0; i < n; ++i) for (int j = 0; j < i; ++j) swap(matrix[i][j], matrix[j][i]);
+}
+
+bool searchMatrix(vector<vector<int>>& matrix, int target) {
+    for (const auto& row : matrix) {
+        auto it = lower_bound(row.begin(), row.end(), target);
+        if (it != row.end() && *it == target) return true;
+    }
+    return false;
+}
+
+bool searchMatrix2(vector<vector<int>>& matrix, int target) {
+    int m = matrix.size(), n = matrix[0].size();
+    int x = 0, y = n - 1;
+    while (x < m && y >= 0) {
+        if (matrix[x][y] == target) {
+            return true;
+        }
+        if (matrix[x][y] > target) {
+            --y;
+        }
+        else {
+            ++x;
+        }
+    }
+    return false;
+}
+
+bool is_outside(int i, int j, const int& m, const int& n, vector<vector<char>>& grid) {
+    return (i < 0 || i >= n || j < 0 || j >= m);
+}
+
+void grapf_bfs(vector<vector<char>>& grid, int i, int j, const int& m, const int& n) {
+    if (is_outside(i, j, m, n, grid)) return;
+    else if (grid[i][j] == '0') return;
+}
+
+int numIslands(vector<vector<char>>& grid) {
+    int n = grid.size();//行数
+    int m = grid[0].size();//列数
+    int res = 0;
+    queue<pair<int, int>> qe;
+    for (int i = 0;i < n;++i) {
+        for (int j = 0;j < m;++j) {
+            if (grid[i][j] == '1') {
+                qe.emplace(i, j);
+                while (!qe.empty()) {
+                    auto p = qe.front();qe.pop();
+                    int ti = p.first, tj = p.second;
+                    if (grid[ti][tj] == '0') continue;//遇到水终止操作
+                    grid[ti][tj] = '2'; cout << i << ':' << j << '\n';
+                    if (!is_outside(ti - 1, tj, m, n, grid) && grid[ti - 1][tj] != '2') { qe.emplace(ti - 1, tj); grid[ti - 1][tj] = '2'; }
+                    if (!is_outside(ti + 1, tj, m, n, grid) && grid[ti + 1][tj] != '2') { qe.emplace(ti + 1, tj); grid[ti + 1][tj] = '2'; }
+                    if (!is_outside(ti, tj - 1, m, n, grid) && grid[ti][tj - 1] != '2') { qe.emplace(ti, tj - 1); grid[ti][tj - 1] = '2'; }
+                    if (!is_outside(ti, tj + 1, m, n, grid) && grid[ti][tj + 1] != '2') { qe.emplace(ti, tj + 1); grid[ti][tj + 1] = '2'; }
+                }
+                ++res;
+            }
+        }
+    }
+    return res;
+}
+
+int orangesRotting(vector<vector<int>>& grid) {
+    queue<pair<int, int>> q;
+    int dirs[4][2] = { {0,1},{0,-1},{1,0},{-1,0} };
+    int m = grid.size(), n = grid[0].size();
+    bool flag = false;//是否有新鲜橘子
+    for (int i = 0;i < m;i++)
+        for (int j = 0;j < n;j++)
+            if (grid[i][j] == 2)//找到第一轮腐烂橘子
+                q.push({ i,j });
+            else if (grid[i][j] == 1)
+                flag = 1;
+    if (q.empty() && flag)//如果没有腐烂橘子并且有新鲜橘子，则新鲜橘子不可能腐烂
+        return -1;
+    int ans = 0;
+    while (!q.empty()) {
+        int t = q.size();//遍历同一时间感染的橘子
+        for (int k = 0;k < t;k++) {
+            pair<int, int>p = q.front(); q.pop();
+            for (auto dir : dirs) {
+                int x = p.first + dir[0];
+                int y = p.second + dir[1];
+                if (x >= 0 && x < m && y >= 0 && y < n && grid[x][y] == 1)//找到新感染的橘子
+                {
+                    grid[x][y] = 2;
+                    q.push({ x,y });
+                }
+            }
+        }
+        if (!q.empty())//如果当前轮有新感染的橘子，时间加一
+            ans++;
+    }
+    for (int i = 0;i < m;i++)
+        for (int j = 0;j < n;j++)
+            if (grid[i][j] == 1)//检查是否有未感染的新鲜橘子
+                return -1;
+    return ans;
+}
+
+void dfs_course(vector<int>& courses, const vector<vector<int>>& edges, int node, bool& res) {
+    if (!res) return;
+    courses[node] = 1;
+    auto es = edges[node];//该节点连向的其他节点
+    for (auto e : es) {
+        if (courses[e] == 1) { res = 0; return; }
+        else if (courses[e] == 0) dfs_course(courses, edges, e, res);
+    }
+    courses[node] = 2;
+}
+
+bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
+    vector<int> courses(numCourses, 0);//课程状态数组，0表示未遍历过
+    vector<vector<int>> edges(numCourses, vector<int>());
+    bool res = 1;
+    for (const auto& e : prerequisites) edges[e[1]].push_back(e[0]);
+    for (int i = 0;i < numCourses && res;++i) if (courses[i] == 0) dfs_course(courses, edges, i, res);
+    return res;
+}
+
+void combinationSum_helper(vector<vector<int>>& res, const vector<int> candidates, const int& target, int pre_sum, vector<int> pre_select, int index) {
+    if (pre_sum > target) return;
+    else if (pre_sum == target) {
+        res.emplace_back(pre_select);
+    }
+    else {
+        for (int i = index;i < candidates.size();++i) {
+            int sum = pre_sum + candidates[i];
+            if (sum > target) break;
+            else {
+                pre_select.emplace_back(candidates[i]);
+                combinationSum_helper(res, candidates, target, sum, pre_select, i);
+                pre_select.pop_back();
+            }
+        }
+    }
+}
+
+vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+    vector<vector<int>> res;
+    sort(candidates.begin(), candidates.end());
+    int size = candidates.size();
+    combinationSum_helper(res, candidates, target, 0, {}, 0);
+    return res;
+}
+
+void find_symmetry(const string& s, vector<vector<uint8_t>>& sym_word, int i, int j);
+
+void backtrack_string(const string& s, int i, vector<vector<string>>& res, vector<string> selection, vector<vector<uint8_t>>& sym_word) {
+    int n = s.size();
+    if (i == n) {
+        res.emplace_back(selection);
+        return;
+    }
+    for (int j = i; j < n; ++j) {
+        find_symmetry(s, sym_word, i, j);
+        if (sym_word[i][j] == 1) {
+            selection.emplace_back(s.substr(i, j - i + 1));
+            backtrack_string(s, j + 1, res, selection, sym_word);
+            selection.pop_back();
+        }
+    }
+
+}
+
+void find_symmetry(const string& s, vector<vector<uint8_t>>& sym_word, int i, int j) {
+    if (sym_word[i][j] != 0) return;
+    if (i >= j) sym_word[i][j] = 1;
+    else {
+        find_symmetry(s, sym_word, i + 1, j - 1);
+        sym_word[i][j] = (s[i] == s[j] && sym_word[i + 1][j - 1] == 1) ? 1 : 2;
+    }
+}
+
+vector<vector<string>> partition(string s) {
+    int n = s.length();
+    vector<vector<uint8_t>> sym_word(n, vector<uint8_t>(n, 0));
+    for (int i = 0; i < n;++i) {
+        for (int j = i;j < n;++j) sym_word[i][j] = 1;
+    }
+    vector<vector<string>> res;
+    vector<string> selection;
+    find_symmetry(s, sym_word, 0, n - 1);
+    backtrack_string(s, 0, res, selection, sym_word);
+    return res;
+}
+
+int binarySearch(vector<int>& nums, int target, bool flag) {
+    int lft = 0, rht = nums.size() - 1, res = nums.size();
+    while (lft <= rht) {
+        int mid = (lft + rht) / 2;
+        if (nums[mid] > target || (flag && nums[mid] >= target)) {
+            rht = mid - 1;
+            res = mid;
+        }
+        else {
+            lft = mid + 1;
+        }
+    }
+    return res;
+}
+
+pair<int, int> binarySearchv2(const vector<int>& nums, const int target) {
+    int lft = 0, rht = nums.size() - 1, mid;
+    while (lft <= rht) {
+        //执行二分查找, 如果成功, mid 就是目标值的索引；如果失败, lft或者rht会正好是小于和大于target的数中最接近它的两个数的索引
+        mid = (lft + rht) / 2;
+        if (nums[mid] > target) {
+            rht = mid - 1;
+        }
+        else {
+            lft = mid + 1;
+        }
+    }
+    if (nums[mid] == target) return { mid,mid };
+    return { lft, rht };
+}
+
+int binarySearch_lft(const vector<int>& nums, int target) {
+    int lft = 0, rht = nums.size() - 1, res;
+    while (lft <= rht) {
+        int mid = (lft + rht) / 2;
+        if (nums[mid] >= target) {
+            rht = mid - 1;
+            res = mid;
+        }
+        else lft = mid + 1;
+    }
+    return res;
+}
+
+int binarySearch_rht(const vector<int>& nums, int target) {
+    int lft = 0, rht = nums.size() - 1, res;
+    while (lft <= rht) {
+        int mid = (lft + rht) / 2;
+        if (nums[mid] <= target) {
+            lft = mid + 1;
+            res = mid;
+        }
+        else rht = mid - 1;
+    }
+    return res;
+}
+
+vector<int> searchRange(vector<int>& nums, int target) {
+    if (nums.size() == 0) return { -1,-1 };
+    int lft = binarySearch_lft(nums, target);
+    int rht = binarySearch_rht(nums, target);
+    if (lft < 0 || rht >= nums.size() || nums[lft] != target || nums[rht] != target) lft = rht = -1;
+    return { lft,rht };
+}
+
+bool is_sorted(const vector<int>& nums, int lft, int rht) {
+    return lft == rht || nums[lft] < nums[rht];
+}
+
+
+int search_rotate(vector<int>& nums, int target) {
+    int lft = 0, rht = nums.size() - 1, mid;
+    while (lft <= rht) {
+        mid = (lft + rht) / 2;
+        if (nums[mid] == target) return mid;
+        if (is_sorted(nums, lft, mid)) {
+            if (target >= nums[lft] && target <= nums[mid]) rht = mid - 1;
+            else lft = mid + 1;
+        }
+        else {
+            if (target >= nums[mid] && target <= nums[rht]) lft = mid + 1;
+            else rht = mid - 1;
+        }
+    }
+    return -1;
+}
+
+int findMin(vector<int>& nums) {
+    int lft = 0, rht = nums.size() - 1, mid, rotate_start = nums[0], min;
+    while (lft <= rht) {
+        mid = (lft + rht) / 2;
+        if (rotate_start <= nums[mid]) lft = ++mid;
+        else {
+            min = nums[mid];
+            rht = --mid;
+        }
+    }
+    return min;
+}
+
+string decodeString(string s) {
+    string res;
+    vector<string> vec;
+    int i = 0, end = 0;
+    string temp;
+    while (i < s.size()) {
+        temp.clear();
+        if (isalpha(s[i])) {
+            while (isalpha(s[i])) {
+                temp.push_back(s[i]); ++i;
+            }
+            vec.emplace_back(temp);
+        }
+        else if (s[i] == '[') {
+            vec.emplace_back(string(1, s[i]));
+            ++i;
+        }
+        else if (isdigit(s[i])) {
+            while (isdigit(s[i])) {
+                temp.push_back(s[i]); ++i;
+            }
+            vec.emplace_back(temp);
+        }
+        else {//右括号
+            while (1) {
+                string ss = vec.back(); vec.pop_back();
+                if (ss == "[") {
+                    int times = stoi(vec.back());vec.pop_back();
+                    string t;
+                    for (int i = 0;i < times;++i) t += temp;
+                    vec.emplace_back(t);break;
+                }
+                else temp.insert(0, ss);
+            }
+            ++i;
+        }
+    }
+    for (int i = 1;i < vec.size();++i)vec[0] += vec[i];
+    return vec[0];
+}
+
+vector<int> dailyTemperatures(vector<int>& temperatures) {
+    int n = temperatures.size();
+    vector<int> res(n);
+    vector<unsigned> temper(71, 0x7ffffff);//对i索引，表示30+i度温度的最小
+    for (int i = n - 1;i >= 0;--i) {
+        unsigned warmer = 0x7fffffff;
+        for (int t = temperatures[i] + 1; t <= 100; ++t) warmer = min(warmer, temper[t - 30]);
+        if (warmer != 0x7fffffff) res[i] = warmer - i;
+        temper[temperatures[i] - 30] = i;
+    }
+    return res;
+}
+
+
+void maxheap(vector<int>& heap, int parent, const int& heapsize) {
+    int lft = (parent << 1) + 1, rht = (parent << 1) + 2;
+    int max_one = (lft < heapsize && heap[lft] > heap[parent]) ? lft : parent;
+    max_one = (rht < heapsize && heap[rht] > heap[max_one]) ? rht : max_one;
+    if (max_one != parent) {
+        swap(heap[parent], heap[max_one]);
+        maxheap(heap, max_one, heapsize);
+    }
+}
+
+void build_maxheap(vector<int>& heap, const int& heapsize) {
+    for (int i = heapsize / 2 - 1; i >= 0; --i) {
+        maxheap(heap, i, heapsize);
+    }
+}
+
+int findKthLargest(vector<int>& nums, int k) {
+    int heapsize = nums.size();
+    build_maxheap(nums, heapsize);
+    for (int i = nums.size() - 1; i >= nums.size() - k + 1; --i) {
+        swap(nums[0], nums[i]);
+        --heapsize;
+        maxheap(nums, 0, heapsize);
+    }
+    return nums[0];
+}
+
+int quickselect(vector<int>& nums, int l, int r, int k) {
+    if (l == r) return nums[k];
+    int partition = nums[l], i = l - 1, j = r + 1, n = nums.size();
+    while (i < j) {
+        ++i;--j;
+        while (i < n && nums[i] < partition) ++i;
+        while (j >= 0 && nums[j] > partition) --j;
+        if (i < j) swap(nums[i], nums[j]);
+    }
+    if (k <= j)return quickselect(nums, l, j, k);//此时j对应小于主元的最后一个元素
+    else return quickselect(nums, j + 1, r, k);
+}
+
+int findKthLargest_qsort(vector<int>& nums, int k) {
+    int n = nums.size();
+    return quickselect(nums, 0, n - 1, n - k);
+}
+
+void sortColors(vector<int>& nums) {
+    int n = nums.size();
+    int p0 = -1, p1 = -1;
+    for (int i = 0; i < n; ++i) {
+        if (nums[i] == 1) {
+            swap(nums[i], nums[++p1]);
+        }
+        else if (nums[i] == 0) {
+            swap(nums[i], nums[1 + p0]);
+            if (p0 < p1) {
+                swap(nums[i], nums[p1 + 1]);
+            }
+            ++p1;++p0;
+        }
+    }
+}
+
+int tribonacci(int n) {
+    if (n <= 1) return n;
+    else if (n == 2) return n;
+    vector<int> mem = { 0,1,1 ,0 };
+    int i = 3;
+    while (i <= n) {
+        mem[0] = mem[1] + mem[2] + mem[3];
+        mem[3] = mem[2];
+        mem[2] = mem[1];
+        mem[1] = mem[0];
+        ++i;
+    }
+    return mem[0];
+}
+
+int minCostClimbingStairs(vector<int>& cost) {
+    int n = cost.size();
+    vector<int> mem = { 0,0,0 };
+    for (int i = 2; i <= n; i++) {
+        mem[0] = min(mem[1] + cost[i - 1], mem[2] + cost[i - 2]);
+        mem[2] = mem[1];
+        mem[1] = mem[0];
+    }
+    return mem[0];
+}
+
+int deleteAndEarn(vector<int>& nums) {
+    if (nums.size() == 1) return nums[0];
+    sort(nums.begin(), nums.end(), less<int>());
+    int n = nums.size(), i = 2;
+    unordered_map<int, int> um;
+    vector<int> keys = { nums[0] };
+    for (auto i : nums) {
+        if (!um.count(i)) um[i] = 1;
+        else ++um[i];
+        if (i != keys.back()) keys.emplace_back(i);
+    }
+    if (keys.size() == 1) return keys[0] * um[keys[0]];
+
+    int temp;//偷到第二家
+    temp = ((keys[1] - 1) != keys[0]) ? keys[0] * um[keys[0]] + keys[1] * um[keys[1]] : max(keys[1] * um[keys[1]], keys[0] * um[keys[0]]);
+    vector<int> mem = { temp,temp,keys[0] * um[keys[0]] };//{结果，偷到第二家，偷到第一家}
+    while (i < keys.size()) {//进入时已经偷了2家或1家
+        if ((keys[i] - 1) != keys[i - 1]) mem[0] = max(mem[1], mem[2]) + keys[i] * um[keys[i]];
+        else mem[0] = max(mem[1], mem[2] + keys[i] * um[keys[i]]);
+        mem[2] = mem[1];
+        mem[1] = mem[0];
+        ++i;
+    }
+    return mem[0];
+}
+
+void find_symmetry_helper(const string& s, vector<vector<uint8_t>>& sym_word, int i, int j, int& m, int& st) {
+    if (i >= j || sym_word[i][j] == 2) return;
+    if (sym_word[i][j] == 1) { m = max(j - i + 1, m);if (m == j - i + 1) st = i; return; }
+    else {
+        if (j - i == 1) sym_word[i][j] = s[i] == s[j];
+        else {
+            find_symmetry_helper(s, sym_word, i + 1, j - 1, m, st);
+            sym_word[i][j] = (s[i] == s[j] && sym_word[i + 1][j - 1] == 1) ? 1 : 2;
+        }
+        if (sym_word[i][j] == 1) { m = max(j - i + 1, m);if (m == j - i + 1) st = i; }
+    }
+}
+
+string longestPalindrome(string s) {
+    int n = s.size(), max_len = 1, max_start = 0;
+    if (n < 2) return s;
+    vector<vector<uint8_t>> dp(n, vector<uint8_t>(n, 0));
+    for (int i = 0; i < n; i++) dp[i][i] = 1;
+    for (int i = 0; i < n;++i) {
+        for (int j = n - 1;j > i;--j) {
+            if (j - i + 1 > max_len) find_symmetry_helper(s, dp, i, j, max_len, max_start);
+        }
+    }
+    return s.substr(max_start, max_len);
+}
+
+void symmetry_str_helper(const string& s, vector<vector<uint8_t>>& sym_word, int i, int j, int& m) {
+    if (i >= j || sym_word[i][j] != 0) return;
+    else {
+        if (j - i == 1) sym_word[i][j] = s[i] == s[j];
+        else {
+            symmetry_str_helper(s, sym_word, i + 1, j - 1, m);
+            sym_word[i][j] = (s[i] == s[j] && sym_word[i + 1][j - 1] == 1) ? 1 : 2;
+        }
+        if (sym_word[i][j] == 1) { m = max(j - i + 1, m); }
+    }
+}
+
+int longestPalindromeSubseq(string s) {
+    int len = 0, n = s.size();
+    if (n < 2) return n;
+    vector<vector<uint8_t>> dp(n, vector<uint8_t>(n, 0));
+    for (int i = 0; i < n; i++) dp[i][i] = 1;
+    for (int i = 0; i < n;++i) {
+        for (int j = n - 1;j > i;--j) {
+            if (j - i + 1 > len) symmetry_str_helper(s, dp, i, j, len);
+        }
+    }
+    return len;
+}
+
+
+int longestArithSeqLength2(vector<int>& nums) {
+    int n = nums.size();
+    int res = 1;
+    vector<unordered_map<int, int>> dp(n);
+    for (int i = -500; i <= 500; i++) dp[0][i] = 1;//头元素可以视为任意差的数列开头
+    for (int i = 1; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+            int d = nums[i] - nums[j];
+            if (dp[j].count(d)) dp[i][d] = dp[j][d] + 1;
+            else dp[i][d] = 2;
+            res = max(res, dp[i][d]);
+        }
+    }
+    return res;
+}
+
+
+int minDistance(string word1, string word2) {
+    int n = word1.length();
+    int m = word2.length();
+    if (n * m == 0) return n + m;
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+    for (int i = 0; i < n + 1; i++) dp[i][0] = i;
+    for (int j = 0; j < m + 1; j++) dp[0][j] = j;
+    for (int i = 1; i < n + 1; i++) {
+        for (int j = 1; j < m + 1; j++) {
+            int left = dp[i - 1][j] + 1;
+            int down = dp[i][j - 1] + 1;
+            int left_down = dp[i - 1][j - 1];
+            if (word1[i - 1] != word2[j - 1]) left_down += 1;
+            dp[i][j] = min(left, min(down, left_down));
+        }
+    }
+    return dp[n][m];
+}
+
+
+int longestArithSeqLength(vector<int>& nums) {
+    auto minmax = minmax_element(nums.begin(), nums.end());
+    int diff = *minmax.second - *minmax.first;
+    auto minit = minmax.first, maxit = minmax.second;
+    int res = 1;
+    for (int d = -diff; d <= diff; ++d) {
+        vector<int> f(*maxit + 1, -1);
+        for (int num : nums) {
+            if (int prev = num - d; prev >= *minit && prev <= *maxit && f[prev] != -1) {
+                f[num] = max(f[num], f[prev] + 1);
+                res = max(res, f[num]);
+            }
+            f[num] = max(f[num], 1);
+        }
+    }
+    return res;
+}
+
+int jump(vector<int>& nums) {
+    int maxPos = 0, n = nums.size(), end = 0, step = 0, i = 0, max_index = 0;
+    while (1) {
+        maxPos = i + nums[i];
+        if (maxPos >= n - 1) return ++step;
+        for (int j = i + 1;j <= maxPos;++j) {
+            if (j + nums[j] > max_index + nums[max_index]) {
+                max_index = j;
+            }
+        }
+        i = max_index;maxPos = max_index + nums[max_index];
+        step++;
+    }
+    return step;
+}
+
 
 int main() {
     //a_plus_b();
-    vector <int> test = { 2,7,9,3,1 };
+    //cout << longestPalindromeSubseq("xaabacxcabaaxcabaax");
+    vector <int> test = { 1,4,8,12,32,44,213,543,654,765,876,987,998 };
+    //cout << jump(test);
+    vector<vector<char>> grid = { {'1','1','1','1','0'},{'1','1','0','1','0'},{'1','1','0','0','0'},{'0','0','0','0','0'} };
     vector <int> test2 = { 1,3,4 };
-    vector<vector<int>> test3 = { {7,65536} ,{13,0},{11,4},{10,2},{1,0} };
+    vector<vector<int>> test3 = { {0,1} };
     vector<string> strs = { "eat","tea","tan","ate","nat","bat" };
     ListNode temp(65535);
     ListNode temp2(65535);
@@ -1277,8 +1930,22 @@ int main() {
     //cout << pathSum(tree1, 8);
     //permute(test);
     //cout << rob(test);
-
-
+    //prit_container(spiralOrder(test3));
+    //cout << numIslands(grid);
+    //cout << canFinish(2, test3);
+    //for (auto v : combinationSum(test, 7)) prit_container(v);
+    //partition("abbab");
+    //prit_container(searchRange(test, -1));
+    //cout << search_rotate(test, 1);
+    //cout << findMin(test);
+    //cout << decodeString("100[leetcode]");
+    //prit_container(dailyTemperatures(test));
+    //cout << findKthLargest_qsort(test, 4);
+    //sortColors(test); prit_container(test);
+    //cout << tribonacci(4);
+    //cout << deleteAndEarn(test);
+    auto a = binarySearchv2(test, 0);
+    cout << a.first << ',' << a.second << endl;
 
     //strings_withdot();
     //auto si = twoSum2(test, 6);
